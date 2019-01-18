@@ -6,6 +6,7 @@
 #include "led.h"
 #include "task.h"
 #include "../../fonts/font3x5_1.h"
+#include "button.h"
 
 #define DISPLAY_RATE 400
 #define BUTTON_RATE 100
@@ -13,8 +14,10 @@
 
 static int count = 0;
 static bool running = false;
-// static int led_state = 0;
-static int secs = 0;
+static long secs = 0;
+const long times[4] = {1, 60, 3600, 86400};
+static int option = 0;
+
 
 
 static void display_task(__unused__ void *data)
@@ -38,12 +41,21 @@ static void button_task(__unused__ void *data)
             count++;
         } else if (navswitch_push_event_p(NAVSWITCH_EAST) && count > 0) {
             count--;
+        } else if (navswitch_push_event_p(NAVSWITCH_NORTH) && option < 3) {
+            option++;
+        } else if (navswitch_push_event_p(NAVSWITCH_SOUTH) && option > 0) {
+            option--;
         }
 
         if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
             running = true;
             led_set(LED1, false);
         }
+    }
+
+    button_update();
+    if (button_push_event_p(0)) {
+        running = false;
     }
 }
 
@@ -52,7 +64,7 @@ static void button_task(__unused__ void *data)
 static void count_task(__unused__ void *data)
 {
     secs++;
-    if (secs >= 86400 && running) {
+    if (secs >= times[option] && running) {
         count--;
         secs = 0;
     }
@@ -78,6 +90,7 @@ int main(void)
 
     system_init();
     navswitch_init();
+    button_init();
     led_init();
     led_set(LED1, false);
     tinygl_init(DISPLAY_RATE);
