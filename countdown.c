@@ -42,6 +42,7 @@ static void button_task(__unused__ void *data)
 
         if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
             running = true;
+            led_set(LED1, false);
         }
     }
 }
@@ -51,14 +52,14 @@ static void button_task(__unused__ void *data)
 static void count_task(__unused__ void *data)
 {
     secs++;
-    if (secs >= 60 && running) {
+    if (secs >= 86400 && running) {
         count--;
         secs = 0;
-        led_set(LED1, true);
     }
 
-    if (count <= 0) {
+    if (count <= 0 && running) {
         running = false;
+        led_set(LED1, true);
     }
 }
 
